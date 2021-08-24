@@ -1,1 +1,1 @@
-# rust-data-science
+A test repo to try some algorithms
