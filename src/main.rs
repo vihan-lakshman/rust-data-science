@@ -20,9 +20,26 @@ impl CountMinSketch {
 
 	pub fn consume(&mut self, value: &str) -> bool {
 		let digest = md5::compute(value);
-		let bytes: [u8; 4] = [digest[0], digest[1], digest[2], digest[3]];
 		println!("{:x}", digest);
-		// let decoded = hex::decode(digest).expect("Decoding failed");
+		let digest_str = format!("{:x}", digest);
+
+		println!("The string form is {}", digest_str);
+		let decoded = hex::decode(digest_str).expect("Decoding failed");
+
+		println!("The decoded form is {:?}", decoded);
+
+		for i in 0..4 {
+			self.hash_tables[i][usize::from(decoded[i])] += 1;
+		}
+
+
+		// for table in 0..4 {
+		// 	for value in 0..256 {
+		// 		println!("Table {} looks like {}", table, self.hash_tables[table][value]);
+		// 	}
+			
+		// }
+
 		true
 	}
 
@@ -42,6 +59,7 @@ mod tests {
     	for item in inputs.iter() {
     		assert!(CMS.consume(item))
     	}
+
     	for item in inputs.iter() {
     		assert_eq!(1, CMS.query(item))
     	}
