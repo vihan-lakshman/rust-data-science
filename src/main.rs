@@ -7,6 +7,7 @@
 // query(item) -> return the (approximate) count of item
 
 use md5;
+extern crate hex;
 
 pub struct CountMinSketch {
 	hash_tables: [[u8; 256]; 4],
@@ -17,11 +18,15 @@ impl CountMinSketch {
 		CountMinSketch {hash_tables: [[0; 256]; 4]}
 	}
 
-	pub fn consume(&mut self, value: &u8) -> bool {
+	pub fn consume(&mut self, value: &str) -> bool {
+		let digest = md5::compute(value);
+		let bytes: [u8; 4] = [digest[0], digest[1], digest[2], digest[3]];
+		println!("{:x}", digest);
+		// let decoded = hex::decode(digest).expect("Decoding failed");
 		true
 	}
 
-	pub fn query(&self, value: &u8) -> u8 {
+	pub fn query(&self, value: &str) -> u8 {
 		1
 	}
 }
@@ -32,7 +37,7 @@ mod tests {
 
     #[test]
     fn basic_test() {
-    	let inputs = [1,2,3,4,5,6,7,8,9,10];
+    	let inputs: [&str; 10] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
     	let mut CMS = CountMinSketch::new();
     	for item in inputs.iter() {
     		assert!(CMS.consume(item))
