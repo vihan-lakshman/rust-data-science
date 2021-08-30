@@ -20,31 +20,30 @@ impl CountMinSketch {
 
 	pub fn consume(&mut self, value: &str) -> bool {
 		let digest = md5::compute(value);
-		println!("{:x}", digest);
 		let digest_str = format!("{:x}", digest);
 
-		println!("The string form is {}", digest_str);
 		let decoded = hex::decode(digest_str).expect("Decoding failed");
-
-		println!("The decoded form is {:?}", decoded);
 
 		for i in 0..4 {
 			self.hash_tables[i][usize::from(decoded[i])] += 1;
 		}
 
-
-		// for table in 0..4 {
-		// 	for value in 0..256 {
-		// 		println!("Table {} looks like {}", table, self.hash_tables[table][value]);
-		// 	}
-			
-		// }
-
 		true
 	}
 
 	pub fn query(&self, value: &str) -> u8 {
-		1
+		let digest = md5::compute(value);
+		let digest_str = format!("{:x}", digest);
+
+		let decoded = hex::decode(digest_str).expect("Decoding failed");
+
+		let mut ret = 255;
+		for i in 0..4 {
+			let val = self.hash_tables[i][usize::from(decoded[i])];
+			if val < ret { ret = val;}
+		}
+		ret
+
 	}
 }
 
@@ -55,13 +54,21 @@ mod tests {
     #[test]
     fn basic_test() {
     	let inputs: [&str; 10] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-    	let mut CMS = CountMinSketch::new();
+    	let mut cms = CountMinSketch::new();
     	for item in inputs.iter() {
-    		assert!(CMS.consume(item))
+    		assert!(cms.consume(item));
     	}
 
     	for item in inputs.iter() {
-    		assert_eq!(1, CMS.query(item))
+    		assert_eq!(1, cms.query(item));
     	}
+
+    	let inputs2: [&str; 10] = ["1", "1", "1", "1", "1", "1", "1", "1", "1", "10"];
+    	for item in inputs2.iter() {
+    		assert!(cms.consume(item))
+    	}
+
+    	assert_eq!(10, cms.query("1"));
+    	assert_eq!(2, cms.query("10"));
     }
 }
