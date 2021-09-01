@@ -24,8 +24,17 @@ impl CountMinSketch {
 
 		let decoded = hex::decode(digest_str).expect("Decoding failed");
 
+		// Get the min count for conservative updates
+		let mut v = Vec::new();
 		for i in 0..4 {
-			self.hash_tables[i][usize::from(decoded[i])] += 1;
+			v.push(self.hash_tables[i][usize::from(decoded[i])]);
+		}
+		let min_val = *v.iter().min().unwrap();
+
+		for i in 0..4 {
+			if self.hash_tables[i][usize::from(decoded[i])] == min_val {
+				self.hash_tables[i][usize::from(decoded[i])] += 1;
+			}
 		}
 
 		true
@@ -38,6 +47,7 @@ impl CountMinSketch {
 		let decoded = hex::decode(digest_str).expect("Decoding failed");
 
 		let mut ret = 255;
+	
 		for i in 0..4 {
 			let val = self.hash_tables[i][usize::from(decoded[i])];
 			if val < ret { ret = val;}
